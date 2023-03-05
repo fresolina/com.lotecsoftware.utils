@@ -22,6 +22,8 @@ namespace Lotec.Utils.Packages {
         };
         static string[] _requiredPackages = {
             "com.unity.ide.vscode",
+            "com.unity.inputsystem",
+            "com.unity.cinemachine",
         };
 
         [MenuItem("Tools/Lotec/Cleanup Packages")]
@@ -45,12 +47,11 @@ namespace Lotec.Utils.Packages {
             if (ListRequest.Status == StatusCode.Success) {
                 PackageCollection packages = ListRequest.Result;
                 string[] packagesToRemove = packages
-                    .Where(package => _unwantedPackages.Contains(package.name))
                     .Select(package => package.name)
+                    .Intersect(_unwantedPackages)
                     .ToArray();
-                string[] packagesToAdd = packages
-                    .Where(package => _requiredPackages.Contains(package.name))
-                    .Select(package => package.name)
+                string[] packagesToAdd = _requiredPackages
+                    .Except(packages.Select(package => package.name))
                     .ToArray();
                 if (packagesToRemove.Length > 0)
                     Debug.Log($"Removing packages: {System.String.Join(", ", packagesToRemove)}");
