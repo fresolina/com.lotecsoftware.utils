@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Lotec.Utils.Editor {
     public class MeshCombiner : MonoBehaviour {
-        private static string simplifiedPostfix = ".Simplified";
+        public static string simplifiedPostfix = ".Simplified";
 
         [UnityEditor.MenuItem("Tools/Create simplified mesh")]
         public static void CombineSelectedTransform() {
