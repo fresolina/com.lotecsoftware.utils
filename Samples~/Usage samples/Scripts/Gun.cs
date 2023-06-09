@@ -4,6 +4,7 @@ using UnityEngine.Assertions;
 
 public class Gun : MonoBehaviour {
     [SerializeField] float _launchForce = 1000f;
+    [SerializeField] int _bulletsPerClick = 3;
     [Tooltip("Use PoolManager")]
     [SerializeField] bool _poolObjects;
     [Tooltip("Destroy bullet after this many seconds")]
@@ -12,10 +13,15 @@ public class Gun : MonoBehaviour {
 
     void Update() {
         if (Input.GetMouseButtonDown(0)) {
-            Fire();
+            Fire(_bulletsPerClick);
         }
     }
 
+    void Fire(int count) {
+        for (int i = 0; i < count; i++) {
+            Fire();
+        }
+    }
     void Fire() {
         GameObject bullet;
         if (_poolObjects) {
