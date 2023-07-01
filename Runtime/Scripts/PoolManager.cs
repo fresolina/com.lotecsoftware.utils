@@ -12,36 +12,33 @@ namespace Lotec.Utils {
     /// Ensure your pooled objects OnEnable() method resets needed values.
     /// </summary>
     public class PoolManager : MonoBehaviour {
-        private static PoolManager _instance;
+        private static PoolManager s_instance;
         // Get the pool, handling objects instantiated from a prefab
-        private Dictionary<GameObject, ObjectPool<GameObject>> _poolsFromPrefab = new Dictionary<GameObject, ObjectPool<GameObject>>();
+        private readonly Dictionary<GameObject, ObjectPool<GameObject>> _poolsFromPrefab = new();
         // Get the pool, handling the instantiated object
-        private Dictionary<GameObject, ObjectPool<GameObject>> _poolsFromObject = new Dictionary<GameObject, ObjectPool<GameObject>>();
-        private int _poolCount;
+        private readonly Dictionary<GameObject, ObjectPool<GameObject>> _poolsFromObject = new();
 
         public static GameObject Instantiate(GameObject prefab) {
-            return _instance.Get(prefab);
+            return s_instance.Get(prefab);
         }
 
         public static GameObject Instantiate(GameObject prefab, Vector3 position, Quaternion rotation) {
-            var obj = _instance.Get(prefab);
-            obj.transform.position = position;
-            obj.transform.rotation = rotation;
+            GameObject obj = s_instance.Get(prefab);
+            obj.transform.SetPositionAndRotation(position, rotation);
             return obj;
         }
 
         public static void Destroy(GameObject obj) {
-            _instance.Release(obj);
+            s_instance.Release(obj);
         }
 
         public static void Destroy(GameObject obj, float time) {
-            _instance.StartCoroutine(_instance.Release(obj, time));
+            s_instance.StartCoroutine(s_instance.Release(obj, time));
         }
 
         public GameObject Get(GameObject prefab) {
-            ObjectPool<GameObject> pool;
             GameObject obj;
-            if (!_poolsFromPrefab.TryGetValue(prefab, out pool)) {
+            if (!_poolsFromPrefab.TryGetValue(prefab, out ObjectPool<GameObject> pool)) {
                 // This prefab requires a new pool for these object types.
                 pool = new ObjectPool<GameObject>(
                     () => Object.Instantiate(prefab),
@@ -50,7 +47,6 @@ namespace Lotec.Utils {
                     (GameObject obj) => Object.Destroy(obj)
                 );
                 _poolsFromPrefab.Add(prefab, pool);
-                _poolCount++;
             }
             obj = pool.Get();
             _poolsFromObject.TryAdd(obj, pool);
@@ -64,7 +60,7 @@ namespace Lotec.Utils {
         }
 
         public void Release(GameObject obj) {
-            if (_poolsFromObject.TryGetValue(obj, out var pool)) {
+            if (_poolsFromObject.TryGetValue(obj, out ObjectPool<GameObject> pool)) {
                 pool.Release(obj);
             } else {
                 Debug.LogError($"Tried to release unknown object '{obj.name}' into pool. Destroying instead", obj);
@@ -73,7 +69,7 @@ namespace Lotec.Utils {
         }
 
         private void Awake() {
-            _instance = this;
+            s_instance = this;
         }
     }
 }
